@@ -16,7 +16,7 @@ public class sphere_motion : MonoBehaviour {
 	void Update () 
 	{
 
-		if (Input.GetMouseButtonDown (0)) 
+		if (Input.GetMouseButtonDown (1)) 
 		{
 			pressed = true;
 			Ray ray=Camera.main.ScreenPointToRay (Input.mousePosition);
@@ -24,7 +24,7 @@ public class sphere_motion : MonoBehaviour {
 			else 																				sphere_move=false;
 			offset = Input.mousePosition - Camera.main.WorldToScreenPoint (transform.position);
 		}
-		if (Input.GetMouseButtonUp (0))
+		if (Input.GetMouseButtonUp (1))
 			pressed = false;
 
 		if(pressed)

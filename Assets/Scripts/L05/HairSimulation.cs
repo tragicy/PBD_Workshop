@@ -49,7 +49,7 @@ public class HairSimulation : MonoBehaviour
             float mass = 1;
             for (int j = 0; j < pointCount; j++)
             {
-                //mass *= s;
+                mass *= s;
             }
             Inv_Mass[i] = 1.0f/mass;
             GameObject ball = Instantiate(Ball, X[i], Quaternion.identity);

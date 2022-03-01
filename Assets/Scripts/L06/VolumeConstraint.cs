@@ -4,13 +4,9 @@ using UnityEngine;
 using System;
 using System.IO;
 
-public class FVM : MonoBehaviour
+public class VolumeConstraint : MonoBehaviour
 {
 	float dt 			= 1.0f/60.0f;
-    float mass 			= 1;
-	float stiffness_0	= 20000.0f;
-    float stiffness_1 	= 5000.0f;
-    float damp			= 0.999f;
     Vector3 g = new Vector3(0, -10.0f, 0);
 
     int[] 		Tet;
@@ -18,16 +14,15 @@ public class FVM : MonoBehaviour
     int[] E;
     float[] L;
     float[] Volume;
-    Vector3[] 	Force;
 	Vector3[] 	V;
 	Vector3[] 	X;
 	int number;				//The number of vertices
     float[] W;
-	Matrix4x4[] inv_Dm;
+    float inverse_k = 0.5f;
 
 	//For Laplacian smoothing.
-	Vector3[]   V_sum;
-	int[]		V_num;
+	//Vector3[]   V_sum;
+	//int[]		V_num;
 
 	SVD svd = new SVD();
     Dictionary<Vector2, bool> edgeDic = new Dictionary<Vector2, bool>();
@@ -130,9 +125,6 @@ public class FVM : MonoBehaviour
 
 
 		V 	  = new Vector3[number];
-        Force = new Vector3[number];
-        V_sum = new Vector3[number];
-        V_num = new int[number];
         Volume = new float[tet_number];
         //Init volume
         for (int i = 0; i < tet_number;i++)
@@ -237,23 +229,7 @@ public class FVM : MonoBehaviour
         }
         else
             W[0] = 1;
-        for (int i=0 ;i<number; i++)
-    	{
-            //TODO: Add gravity to Force.
 
-        }
-
-        for (int tet=0; tet<tet_number; tet++)
-    	{
-    		//TODO: Deformation Gradient
-    		
-    		//TODO: Green Strain
-
-    		//TODO: Second PK Stress
-
-    		//TODO: Elastic Force
-			
-    	}
         Vector3[] preX = new Vector3[X.Length];
     	for(int i=0; i<number; i++)
     	{
@@ -269,7 +245,7 @@ public class FVM : MonoBehaviour
                 V[i].y = -0.75f * V[i].y;
             }
         }
-
+        //SphereCollisionHandling(ControlSphere.position, 2.0f);
         //Solve Contraint
         for(int i =0;i<16;i++)
             SolveDistanceConstraint();
@@ -282,6 +258,18 @@ public class FVM : MonoBehaviour
         }
         
     }
+    void SphereCollisionHandling(Vector3 center,float radius)
+    {
+        for (int i = 0; i < X.Length; i++)
+        {
+            Vector3 dir = X[i] - center;
+            if (dir.magnitude > radius)
+                continue;
+            Vector3 normal = dir.normalized;
+            Vector3 pos = center + normal * radius;
+            X[i] = pos;
+        }
+    }
     void SolveDistanceConstraint()
     {
         for (int i = 0; i < L.Length; i++)
@@ -292,8 +280,8 @@ public class FVM : MonoBehaviour
             float Wj = W[jj];
             Vector3 vec = X[jj] - X[ii];
             float l0 = vec.magnitude;
-            Vector3 deltaXi = -(Wi / (Wi + Wj + 0.5f / dt)) * (L[i] - l0) * (vec / l0);
-            Vector3 deltaXj = +(Wj / (Wi + Wj + 0.5f / dt)) * (L[i] - l0) * (vec / l0);
+            Vector3 deltaXi = -(Wi / (Wi + Wj + inverse_k / dt)) * (L[i] - l0) * (vec / l0);
+            Vector3 deltaXj = +(Wj / (Wi + Wj + inverse_k / dt)) * (L[i] - l0) * (vec / l0);
             X[jj] += deltaXj;
             X[ii] += deltaXi;
         }

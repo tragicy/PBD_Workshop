@@ -34,7 +34,10 @@ public class sphere_motion : MonoBehaviour {
 				Vector3 mouse=Input.mousePosition;
 				mouse -= offset;
 				mouse.z = Camera.main.WorldToScreenPoint (transform.position).z;
-				transform.position = Camera.main.ScreenToWorldPoint (mouse);
+				Vector3 pos = Camera.main.ScreenToWorldPoint(mouse);
+				//pos.x = transform.position.x;
+				//pos.z = transform.position.z;
+				transform.position = pos;
 			}
 			else
 			{
